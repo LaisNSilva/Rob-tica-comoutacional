@@ -1,7 +1,14 @@
 import cv2
+import auxiliar as aux
+import numpy as np
 
 #cap = cv2.VideoCapture('hall_box_battery_1024.mp4')
 cap = cv2.VideoCapture(0)
+
+rosa="#ff004d"
+azul="#0173fe"
+
+ 
 
 while(True):
     # Capture frame-by-frame
@@ -12,57 +19,97 @@ while(True):
 
     # Our operations on the frame come here
     rgb = frame #  cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    cap_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # Display the resulting frame
     # cv2.imshow('frame',frame)
     cv2.imshow('gray', rgb)
     
-    # Detctando circulos
-    # Detctando circulos
+   
+    #Tentando detctar as cores - Lais
+    #rosa
+    cap1r, cap2r = aux.ranges(rosa)
+    maskrosa = cv2.inRange(cap_hsv, cap1r, cap2r)
     
-    bordas = auto_canny(blur)
+    #azul
+    cap1a, cap2a = aux.ranges(azul)
+    maskazul = cv2.inRange(cap_hsv, cap1a, cap2a)
     
-    circles = []
+
+    mask = maskrosa + maskazul
+
+    cv2.imshow("mask", mask)
     
-    bordas_color = cv2.cvtColor(bordas, cv2.COLOR_GRAY2BGR)
+    # MARCAR ROSA
+    segmentado_cor_rosa = cv2.morphologyEx(maskrosa,cv2.MORPH_CLOSE,np.ones((10, 10)))
+    selecao_rosa = cv2.bitwise_and(frame, frame, mask=segmentado_cor_rosa)
     
-    circles = None
-    circles=cv2.HoughCircles(bordas,cv2.HOUGH_GRADIENT,2,40,param1=50,param2=100,minRadius=5,maxRadius=60)
     
-    if circles is not None:        
-        circles = np.uint16(np.around(circles))
-        for i in circles[0,:]:
-            print(i)
-            # draw the outer circle
-            # cv2.circle(img, center, radius, color[, thickness[, lineType[, shift]]])
-            cv2.circle(bordas_color,(i[0],i[1]),i[2],(0,255,0),2)
-            # draw the center of the circle
-            cv2.circle(bordas_color,(i[0],i[1]),2,(0,0,255),3)
+    
+    # MARCAR AZUL
+    segmentado_cor_azul = cv2.morphologyEx(maskazul,cv2.MORPH_CLOSE,np.ones((10, 10)))
+    selecao_azul = cv2.bitwise_and(frame, frame, mask=segmentado_cor_azul)
+    
+    selecao = selecao_rosa + selecao_azul
+    cv2.imshow("selecao", selecao)
+    
+    
+    # Reconhecendo os contornos ROSA
+    
+    
+    segmentado_caprosa = cv2.morphologyEx(maskrosa,cv2.MORPH_CLOSE,np.ones((4, 4)))
+    
+    img_out_rosa, contornos_rosa, arvore_rosa = cv2.findContours(segmentado_caprosa.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    
+    contornos_img_rosa = frame.copy() #here
+    cv2.drawContours(contornos_img_rosa, contornos_rosa, -1, [0, 0, 255], 3);
+    
+    maior_rosa = None
+    maior_area_rosa = 0
+    for c in contornos_rosa:
+        area_rosa = cv2.contourArea(c)
+        if area_rosa > maior_area_rosa:
+            maior_area_rosa = area
+            maior_rosa = c
             
-    # CONTORNANDO OS CIRCULOS
+    cv2.drawContours(contornos_img_rosa, [maior_rosa], -1, [0, 255, 255], 5);
     
-    segmentado_circle = cv2.morphologyEx(circle,cv2.MORPH_CLOSE,np.ones((4, 4)))
     
-    img_out, contornos, arvore = cv2.findContours(segmentado_circle.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
-    contornos_img = circle.copy()
-    cv2.drawContours(contornos_img, contornos, -1, [0, 0, 255], 3);
+    #cv2.imshow("contornos_img_rosa", contornos_img_rosa)
     
-    x,y,w,h = cv2.cv2.boundingRect(opening)
+#     # Reconhecendo os contornos AZUL
     
-    cv2.cv2.circle(frame,(int(x+w/2), int(y+h/2)), 5,(0,0,255), -1)
+
+    segmentado_capazul = cv2.morphologyEx(maskazul,cv2.MORPH_CLOSE,np.ones((4, 4)))
+
+    img_out_azul, contornos_azul, arvore_azul = cv2.findContours(segmentado_capazul.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    contornos_img_azul = frame.copy()
+    cv2.drawContours(contornos_img_azul, contornos_azul, -1, [0, 0, 255], 3);
+
+    maior_azul = None
+    maior_area_azul = 0
+    for e in contornos_azul:
+        area_azul = cv2.contourArea(e)
+        if area+azul > maior_area_azul:
+            maior_area_azul = area
+            maior_azul = e
+
+    cv2.drawContours(contornos_img_azul, [maior_azul], -1, [0, 255, 255], 5);
+
+
+    cv2.imshow("contornos_img_azul", contornos_img_azul)
     
-    # Calculando a distancia do centro de um circulo para outro
+    #contornos = contornos_img_azul + contornos_img_rosa
+    #cv2.imshow("contornos", contornos)
     
-    h = ((x1-x2)**2 + (y1-y2)**2)**0.5
     
-    # Distância entre a folha e  a camera 
     
-    D = (624*14)/h
+
     
-    print ("A distância entre a folha e camera é de {D}".format(D)
-    
-        
+
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
