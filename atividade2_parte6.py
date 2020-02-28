@@ -15,7 +15,7 @@ while(True):
         print("Codigo de retorno FALSO - problema para capturar o frame")
 
     # Our operations on the frame come here
-    rgb = frame #  cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # Display the resulting frame
@@ -129,7 +129,7 @@ while(True):
     # Vocês não precisam disto: desenham os pontos
     draw_points(matches, img_original, img_cena, kp1, kp2)
     
-    plt.imshow(out), plt.show()
+    cv2.imshow(out)
     
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
