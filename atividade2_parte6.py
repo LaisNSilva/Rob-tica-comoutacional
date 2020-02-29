@@ -56,7 +56,7 @@ while(True):
     MIN_MATCH_COUNT = 10
 
     img_original = cv2.imread('insper.png',0)      # Gabarito / Imagem a procurar
-    img_cena = cv2.imread(cap,0) # Imagem do cenario - puxe do video para fazer isto
+    img_cena = gray # Imagem do cenario - puxe do video para fazer isto
 
     # Versões RGB das imagens, para plot
     original_rgb = cv2.cvtColor(img_original, cv2.COLOR_GRAY2RGB)
@@ -129,7 +129,7 @@ while(True):
     # Vocês não precisam disto: desenham os pontos
     draw_points(matches, img_original, img_cena, kp1, kp2)
     
-    cv2.imshow(out)
+    cv2.imshow('out', out)
     
 
     if cv2.waitKey(1) & 0xFF == ord('q'):

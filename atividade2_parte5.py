@@ -1,7 +1,15 @@
 import cv2
+import auxiliar as aux
+import numpy as np
+import imutils
 
 #cap = cv2.VideoCapture('hall_box_battery_1024.mp4')
 cap = cv2.VideoCapture(0)
+
+rosa="#ff004d"
+azul="#0173fe"
+
+ 
 
 while(True):
     # Capture frame-by-frame
@@ -12,77 +20,82 @@ while(True):
 
     # Our operations on the frame come here
     rgb = frame #  cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    cap_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # Display the resulting frame
     # cv2.imshow('frame',frame)
     cv2.imshow('gray', rgb)
     
-    # Detctando circulos
+   
+    #Tentando detctar as cores - Lais
+    #rosa
+    cap1r, cap2r = aux.ranges(rosa)
+    maskrosa = cv2.inRange(cap_hsv, cap1r, cap2r)
     
-    bordas = auto_canny(blur)
+    #azul
+    cap1a, cap2a = aux.ranges(azul)
+    maskazul = cv2.inRange(cap_hsv, cap1a, cap2a)
     
-    circles = []
+
+    mask = maskrosa + maskazul
     
-    bordas_color = cv2.cvtColor(bordas, cv2.COLOR_GRAY2BGR)
+    mascara_blur = cv2.blur(mask, (3,3))
     
-    circles = None
-    circles=cv2.HoughCircles(bordas,cv2.HOUGH_GRADIENT,2,40,param1=50,param2=100,minRadius=5,maxRadius=60)
+    mask = mascara_blur
+
+    cv2.imshow("mask", mask)
     
+    # MARCAR ROSA
+    segmentado_cor_rosa = cv2.morphologyEx(maskrosa,cv2.MORPH_CLOSE,np.ones((10, 10)))
+    selecao_rosa = cv2.bitwise_and(frame, frame, mask=segmentado_cor_rosa)
+    
+    
+    
+    # MARCAR AZUL
+    segmentado_cor_azul = cv2.morphologyEx(maskazul,cv2.MORPH_CLOSE,np.ones((10, 10)))
+    selecao_azul = cv2.bitwise_and(frame, frame, mask=segmentado_cor_azul)
+    
+    selecao = selecao_rosa + selecao_azul
+    #cv2.imshow("selecao", selecao)
+
+    def auto_canny(image, sigma=0.33):
+        # compute the median of the single channel pixel intensities
+        v = np.median(image)
+
+        # apply automatic Canny edge detection using the computed median
+        lower = int(max(0, (1.0 - sigma) * v))
+        upper = int(min(255, (1.0 + sigma) * v))
+        edged = cv2.Canny(image, lower, upper)
+
+        # return the edged image
+        return edged
+    
+    #Transformada de Hough Circles
+    retorno, mask_limiar = cv2.threshold(mask, 100 ,255, cv2.THRESH_BINARY)
+
+    bordas = auto_canny(mask_limiar)
+    circles=cv2.HoughCircles(image=bordas,method=cv2.HOUGH_GRADIENT,dp=2.5,minDist=40,param1=50,param2=100,minRadius=5,maxRadius=150)
+    mask_limiar_rgb = cv2.cvtColor(mask_limiar, cv2.COLOR_GRAY2RGB)
+    bordas_rgb = cv2.cvtColor(bordas, cv2.COLOR_GRAY2RGB)
+
+    output =  bordas_rgb
+
     if circles is not None:        
         circles = np.uint16(np.around(circles))
         for i in circles[0,:]:
-            print(i)
             # draw the outer circle
-            # cv2.circle(img, center, radius, color[, thickness[, lineType[, shift]]])
-            cv2.circle(bordas_color,(i[0],i[1]),i[2],(0,255,0),2)
+            cv2.circle(output,(i[0],i[1]),i[2],(0,255,0),2)
             # draw the center of the circle
-            cv2.circle(bordas_color,(i[0],i[1]),2,(0,0,255),3)
-        
-        #Tentando detctar as cores - Lais
-        for circles in cap:
-            if value == #ef1864:
-                cap1r, cap2r = aux.ranges(colorpicker.value)
-                mask1 = cv2.inRange(cap, cap1r, cap2r)
-                #MARCAR NA IMAGEM O CILULO ROSA
-                
-                
-                hough_rosa = canny_img.copy() 
+            cv2.circle(output,(i[0],i[1]),2,(0,0,255),3)
 
-                lines = cv2.HoughLinesP(hough_img, 10, math.pi/180.0, 100, np.array([]), 45, 5)
 
-                a,b,c = lines.shape
+    cv2.imshow("Hough Circles", output)
 
-                hough_rosa_rgb = cv2.cvtColor(hough_rosa, cv2.COLOR_GRAY2BGR)
-
-                for i in range(a):
-                    # Faz um circulo ligando o ponto inicial ao ponto final, com a cor rosa (BGR)
-                    cv2.circle(hough_rosa_rgb, (lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]), (0, 0, 255), 5, cv2.LINE_AA)
-                    
-                    
-            if value == #0f14ea:
-                cap1a, cap2a = aux.ranges(colorpicker.value)
-                mask2 = cv2.inRange(cap, cap1a, cap2a)
-                # MARCAR NA IMAGEM O CIRCULO AZUL
-                
-                hough_azul = mask2.copy() 
-
-                lines = cv2.HoughLinesP(hough_azul, 10, math.pi/180.0, 100, np.array([]), 45, 5)
-
-                a,b,c = lines.shape
-
-                hough_azul_rgb = cv2.cvtColor(hough_azul, cv2.COLOR_GRAY2BGR)
-
-                for i in range(a):
-                    # Faz uma linha ligando o ponto inicial ao ponto final, com a cor vermelha (BGR)
-                    cv2.line(hough_azul_rgb, (lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]), (0, 0, 255), 5, cv2.LINE_AA)
-                 
-               
-            
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# When everything done, release the capture
+# When everything done, release the captureq
 cap.release()
 cv2.destroyAllWindows()

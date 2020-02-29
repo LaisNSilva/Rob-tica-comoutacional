@@ -38,6 +38,10 @@ while(True):
     
 
     mask = maskrosa + maskazul
+    
+    mascara_blur = cv2.blur(mask, (3,3))
+    
+    mask = mascara_blur
 
     cv2.imshow("mask", mask)
     

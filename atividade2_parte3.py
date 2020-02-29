@@ -38,32 +38,22 @@ while(True):
     
 
     mask = maskrosa + maskazul
+    
+    mascara_blur = cv2.blur(mask, (3,3))
+    
+    mask = mascara_blur
 
     cv2.imshow("mask", mask)
     
-    # MARCAR ROSA
-    segmentado_cor_rosa = cv2.morphologyEx(maskrosa,cv2.MORPH_CLOSE,np.ones((10, 10)))
-    selecao_rosa = cv2.bitwise_and(frame, frame, mask=segmentado_cor_rosa)
     
+     # Contornos ROSA:
     
+    frame_out_rosa, contornos_rosa, arvore = cv2.findContours(maskrosa, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
     
-    # MARCAR AZUL
-    segmentado_cor_azul = cv2.morphologyEx(maskazul,cv2.MORPH_CLOSE,np.ones((10, 10)))
-    selecao_azul = cv2.bitwise_and(frame, frame, mask=segmentado_cor_azul)
+    mask_rgb_rosa = cv2.cvtColor(maskrosa, cv2.COLOR_GRAY2RGB) 
+    contornos_frame_rosa = mask_rgb_rosa.copy() 
     
-    selecao = selecao_rosa + selecao_azul
-    cv2.imshow("selecao", selecao)
-    
-    
-    # Reconhecendo os contornos ROSA
-    
-    
-    segmentado_caprosa = cv2.morphologyEx(maskrosa,cv2.MORPH_CLOSE,np.ones((4, 4)))
-    
-    img_out_rosa, contornos_rosa, arvore_rosa = cv2.findContours(segmentado_caprosa.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    
-    contornos_img_rosa = frame.copy() 
-    cv2.drawContours(contornos_img_rosa, contornos_rosa, -1, [0, 0, 255], 3);
+    cv2.drawContours(contornos_frame_rosa, contornos_rosa, -1, [0, 255, 255], 5);
     
     maior_rosa = None
     maior_area_rosa = 0
@@ -73,67 +63,106 @@ while(True):
             maior_area_rosa = area_rosa
             maior_rosa = c
             
-    cv2.drawContours(contornos_img_rosa, [maior_rosa], -1, [0, 255, 255], 5);
+            
+    cv2.drawContours(contornos_frame_rosa, [maior_rosa], -1, [255, 0, 0], 5);
+   
     
     
-    #cv2.imshow("contornos_img_rosa", contornos_img_rosa)
+    # Contornos AZUL:
     
-    # Reconhecendo os contornos AZUL
+    frame_out_azul, contornos_azul, arvore = cv2.findContours(maskazul, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
     
-
-    segmentado_capazul = cv2.morphologyEx(maskazul,cv2.MORPH_CLOSE,np.ones((4, 4)))
-
-    img_out_azul, contornos_azul, arvore_azul = cv2.findContours(segmentado_capazul.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    contornos_img_azul = frame.copy()
-    cv2.drawContours(contornos_img_azul, contornos_azul, -1, [0, 0, 255], 3);
-
+    mask_rgb_azul = cv2.cvtColor(maskazul, cv2.COLOR_GRAY2RGB) 
+    contornos_frame_azul = mask_rgb_azul.copy() 
+    
+    cv2.drawContours(contornos_frame_azul, contornos_azul, -1, [0, 255, 255], 5);
+    
     maior_azul = None
     maior_area_azul = 0
-    for e in contornos_azul:
-        area_azul = cv2.contourArea(e)
+    for c in contornos_azul:
+        area_azul = cv2.contourArea(c)
         if area_azul > maior_area_azul:
             maior_area_azul = area_azul
-            maior_azul = e
-
-    cv2.drawContours(contornos_img_azul, [maior_azul], -1, [0, 255, 255], 5);
-
-
-    #cv2.imshow("contornos_img_azul", contornos_img_azul)
+            maior_azul = c
+            
+            
+    cv2.drawContours(contornos_frame_azul, [maior_azul], -1, [255, 0, 0], 5);
     
-    contornos = contornos_img_azul + contornos_img_rosa
-    cv2.imshow("contornos", contornos)
+#     contornos_frame = contornos_frame_rosa + contornos_frame_azul
     
-    # PONTO MÉDIO ROSA
-    for p in range(maior_rosa.shape[0]):
-        if len(maior_rosa)%2==0:
-            if p == len(maior_rosa)/2:
-                x_rosa = maior_rosa[p][0]
-                y_rosa = maior_rosa[p][1]
-        if len(maior_rosa)%2!=0:
-            if p== (len(maior_rosa)+1)/2:
-                x_rosa = maior_rosa[p][0]
-                y_rosa = maior_rosa[p][1]
+    
+#     cv2.imshow("contornos_frame", contornos_frame)
+    
+    
+    
+    # ACHANDO OS CENTROS DOS CONTORNOS
+    
+    def center_of_contour(contorno):
+        """ Retorna uma tupla (cx, cy) que desenha o centro do contorno"""
+        M = cv2.moments(contorno)
+    # Usando a expressão do centróide definida em: https://en.wikipedia.org/wiki/Image_moment
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        return (int(cX), int(cY))
+    
+    def crosshair(img, point, size, color):
+        """ Desenha um crosshair centrado no point.
+            point deve ser uma tupla (x,y)
+            color é uma tupla R,G,B uint8
+        """
+        x,y = point
+        cv2.line(img,(x - size,y),(x + size,y),color,5)
+        cv2.line(img,(x,y - size),(x, y + size),color,5)
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+
+    def texto(img, a, p):
+        #"""Escreve na img RGB dada a string a na posição definida pela tupla p"""
+        cv2.putText(img, str(a), p, font,1,(0,50,100),2,cv2.LINE_AA)
+
+    def auto_canny(image, sigma=0.33):
+        # compute the median of the single channel pixel intensities
+        v = np.median(image)
+
+        # apply automatic Canny edge detection using the computed median
+        lower = int(max(0, (1.0 - sigma) * v))
+        upper = int(min(255, (1.0 + sigma) * v))
+        edged = cv2.Canny(image, lower, upper)
+
+        # return the edged image
+        return edged
+    
+    
+    for c in contornos_rosa: 
+        a = cv2.contourArea(c) # área
+        p = center_of_contour(c) # centro de massa
+        crosshair(contornos_frame_rosa, p, 20, (128,128,0))
+        texto(contornos_frame_rosa, np.round(a,2),p)
         
-    # PONTO MÉDIO AZUL
-    for o in range(maior_azul.shape[0]):
-        if len(maior_azul)%2==0:
-            if o == len(maior_azul)/2:
-                x_azul = maior_azul[o][0]
-                y_azul = maior_azul[o][1]
-        if len(maior_azul)%2!=0:
-            if o== (len(maior_azul)+1)/2:
-                x_azul = maior_azul[o][0]
-                y_azul = maior_azul[o][1]
-
-    # Distância entre os centros das circunferências:
-    h = ((x_azul-x_rosa)**2+(y_azul-y_rosa)**2)**0.5
+    for e in contornos_azul: 
+        b = cv2.contourArea(e) # área
+        q = center_of_contour(e) # centro de massa
+        crosshair(contornos_frame_azul, q, 20, (128,128,0))
+        texto(contornos_frame_azul, np.round(b,2),q)  
+        
     
-    #Distância entre a folha e a camera do computador
-    D = 624*14/h
+    contornos_frame = contornos_frame_rosa + contornos_frame_azul
+    cv2.imshow("contornos_frame", contornos_frame)
+    
+    
+    def distancia (ponto1, ponto1):
+        # Distância entre os centros das circunferências:
+        h = ((ponto1[0]-ponto2[0])**2+(ponto1[1]-ponto2[1])**2)**0.5    
+        #Distância entre a folha e a camera do computador
+        dist = 624*14/h
+        return dist
+    D = distancia (p, q)
     
 
     print ("A distância entre a folha e a camera é de {0}cm".format(D))
+    
+    
+  
     
 
 
