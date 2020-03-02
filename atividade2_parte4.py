@@ -165,6 +165,9 @@ while(True):
     
     print ("O ângulo entre a reta e a horizontal é de {0}".format(real_angulo))
     
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(contornos_frame,"O ângulo entre a reta e a horizontal é de {0}".format(real_angulo),(0,50), font, 1,(255,255,255),2,cv2.LINE_AA)
+    
     
     
     

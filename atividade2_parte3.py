@@ -46,6 +46,8 @@ while(True):
     cv2.imshow("mask", mask)
     
     
+    
+    
      # Contornos ROSA:
     
     frame_out_rosa, contornos_rosa, arvore = cv2.findContours(maskrosa, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
@@ -88,7 +90,7 @@ while(True):
             
     cv2.drawContours(contornos_frame_azul, [maior_azul], -1, [255, 0, 0], 5);
     
-#     contornos_frame = contornos_frame_rosa + contornos_frame_azul
+    #contornos_frame = contornos_frame_rosa + contornos_frame_azul
     
     
 #     cv2.imshow("contornos_frame", contornos_frame)
@@ -101,9 +103,12 @@ while(True):
         """ Retorna uma tupla (cx, cy) que desenha o centro do contorno"""
         M = cv2.moments(contorno)
     # Usando a expressão do centróide definida em: https://en.wikipedia.org/wiki/Image_moment
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        return (int(cX), int(cY))
+        if M["m00"]!=0:
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            return (int(cX), int(cY))
+        else:
+            return (200,150)
     
     def crosshair(img, point, size, color):
         """ Desenha um crosshair centrado no point.
@@ -132,6 +137,7 @@ while(True):
         # return the edged image
         return edged
     
+
     
     for c in contornos_rosa: 
         a = cv2.contourArea(c) # área
@@ -150,19 +156,24 @@ while(True):
     cv2.imshow("contornos_frame", contornos_frame)
     
     
-    def distancia (ponto1, ponto1):
+    
+    
+    def distancia (ponto1, ponto2):
         # Distância entre os centros das circunferências:
         h = ((ponto1[0]-ponto2[0])**2+(ponto1[1]-ponto2[1])**2)**0.5    
         #Distância entre a folha e a camera do computador
+        h = max(h,1)
         dist = 624*14/h
         return dist
+
+    
     D = distancia (p, q)
     
-
-    print ("A distância entre a folha e a camera é de {0}cm".format(D))
-    
-    
-  
+    if D >=0 and D<=100:
+        #print ("A distância entre a folha e a camera é de {0}cm".format(D))
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(contornos_frame,"A distância entre a folha e a camera é de {0}cm".format(D),(0,50), font, 1,(255,255,255),2,cv2.LINE_AA)
+     
     
 
 
