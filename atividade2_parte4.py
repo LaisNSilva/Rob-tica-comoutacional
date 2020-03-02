@@ -47,6 +47,8 @@ while(True):
     cv2.imshow("mask", mask)
     
     
+    
+    
      # Contornos ROSA:
     
     frame_out_rosa, contornos_rosa, arvore = cv2.findContours(maskrosa, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
@@ -89,6 +91,11 @@ while(True):
             
     cv2.drawContours(contornos_frame_azul, [maior_azul], -1, [255, 0, 0], 5);
     
+    #contornos_frame = contornos_frame_rosa + contornos_frame_azul
+    
+    
+#     cv2.imshow("contornos_frame", contornos_frame)
+    
     
     
     # ACHANDO OS CENTROS DOS CONTORNOS
@@ -97,9 +104,12 @@ while(True):
         """ Retorna uma tupla (cx, cy) que desenha o centro do contorno"""
         M = cv2.moments(contorno)
     # Usando a expressão do centróide definida em: https://en.wikipedia.org/wiki/Image_moment
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        return (int(cX), int(cY))
+        if M["m00"]!=0:
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            return (int(cX), int(cY))
+        else:
+            return (200,150)
     
     def crosshair(img, point, size, color):
         """ Desenha um crosshair centrado no point.
@@ -128,6 +138,7 @@ while(True):
         # return the edged image
         return edged
     
+
     
     for c in contornos_rosa: 
         a = cv2.contourArea(c) # área
@@ -163,13 +174,14 @@ while(True):
     
     real_angulo = calculo_angulo(p, q, horizontal)
     
-    print ("O ângulo entre a reta e a horizontal é de {0}".format(real_angulo))
+    #print ("O ângulo entre a reta e a horizontal é de {0}".format(real_angulo))
     
+    texto = "O ângulo entre a reta e a horizontal é de {0}".format(real_angulo)
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(contornos_frame,"O ângulo entre a reta e a horizontal é de {0}".format(real_angulo),(0,50), font, 1,(255,255,255),2,cv2.LINE_AA)
+    cv2.putText(contornos_frame,texto,(0,50), font, 0.5,(255,255,255),1,cv2.LINE_AA)
     
     
-    
+    cv2.imshow("contornos_frame", contornos_frame)
     
     
     

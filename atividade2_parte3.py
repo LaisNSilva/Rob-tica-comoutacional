@@ -153,7 +153,7 @@ while(True):
         
     
     contornos_frame = contornos_frame_rosa + contornos_frame_azul
-    cv2.imshow("contornos_frame", contornos_frame)
+    
     
     
     
@@ -169,11 +169,12 @@ while(True):
     
     D = distancia (p, q)
     
-    if D >=0 and D<=100:
-        #print ("A distância entre a folha e a camera é de {0}cm".format(D))
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(contornos_frame,"A distância entre a folha e a camera é de {0}cm".format(D),(0,50), font, 1,(255,255,255),2,cv2.LINE_AA)
-     
+    #print ("A distância entre a folha e a camera é de {0}cm".format(D))
+    texto = "A distancia entre a folha e a camera e de {0}cm".format(D)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(contornos_frame,texto,(0,50), font, 0.5,(255,255,255),2,cv2.LINE_AA)
+    
+    cv2.imshow("contornos_frame", contornos_frame)
     
 
 
