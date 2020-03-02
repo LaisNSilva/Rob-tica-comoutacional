@@ -75,7 +75,7 @@ while(True):
     retorno, mask_limiar = cv2.threshold(mask, 100 ,255, cv2.THRESH_BINARY)
 
     bordas = auto_canny(mask_limiar)
-    circles=cv2.HoughCircles(image=bordas,method=cv2.HOUGH_GRADIENT,dp=2.5,minDist=40,param1=50,param2=100,minRadius=5,maxRadius=150)
+    circles=cv2.HoughCircles(image=bordas,method=cv2.HOUGH_GRADIENT,dp=2.5,minDist=40,param1=50,param2=100,minRadius=5,maxRadius=50)
     mask_limiar_rgb = cv2.cvtColor(mask_limiar, cv2.COLOR_GRAY2RGB)
     bordas_rgb = cv2.cvtColor(bordas, cv2.COLOR_GRAY2RGB)
 
