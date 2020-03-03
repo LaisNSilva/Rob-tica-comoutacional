@@ -1,7 +1,6 @@
 import cv2
 import auxiliar as aux
 import numpy as np
-import math
 
 #cap = cv2.VideoCapture('hall_box_battery_1024.mp4')
 cap = cv2.VideoCapture(0)
@@ -30,11 +29,15 @@ while(True):
    
     #Tentando detctar as cores - Lais
     #rosa
-    cap1r, cap2r = aux.ranges(rosa)
+    #cap1r, cap2r = aux.ranges(rosa)
+    cap1r = np.array([161,  50,  50])
+    cap2r = np.array([171, 255, 255])
     maskrosa = cv2.inRange(cap_hsv, cap1r, cap2r)
     
     #azul
-    cap1a, cap2a = aux.ranges(azul)
+    #cap1a, cap2a = aux.ranges(azul)
+    cap1a = np.array([97, 50, 50])
+    cap2a = np.array([107, 255, 255])
     maskazul = cv2.inRange(cap_hsv, cap1a, cap2a)
     
 
@@ -45,6 +48,7 @@ while(True):
     mask = mascara_blur
 
     cv2.imshow("mask", mask)
+    
     
     
     try:
@@ -91,12 +95,7 @@ while(True):
 
         cv2.drawContours(contornos_frame_azul, [maior_azul], -1, [255, 0, 0], 5);
 
-        #contornos_frame = contornos_frame_rosa + contornos_frame_azul
-
-
-    #     cv2.imshow("contornos_frame", contornos_frame)
-
-
+ 
 
         # ACHANDO OS CENTROS DOS CONTORNOS
 
@@ -154,46 +153,33 @@ while(True):
 
 
         contornos_frame = contornos_frame_rosa + contornos_frame_azul
-        cv2.imshow("contornos_frame", contornos_frame)
 
-        # DESENHANDO LINHA DE UM CENTRO A OUTRO
-        cv2.line(contornos_frame,(p[0],p[1]),(q[0],q[1]),(255,0,0),5)
 
-        # DESENHANDO LINHA HORIZONTAL
-        horizontal = [p[0]+5,p[1]]
-        cv2.line(contornos_frame,(p[0],p[1]),(horizontal[0],horizontal[1]),(255,0,0),5)
 
-        # CALCULANDO O ÂNGULO ENTRE AS DUAS LINHA
-#         def calculo_angulo(p1, p2, p3):
-#             p2p3 = ((p2[0]-p3[0])**2+(p2[1]-p3[1])**2)**0.5
-#             p1p2 = ((p1[0]-p2[0])**2+(p1[1]-p2[1])**2)**0.5
-#             p1p3 = ((p1[0]-p3[0])**2+(p1[1]-p3[1])**2)**0.5
-#             div=(-2*p1p2*p1p3)
-#             div = max(div,1)
-#             cos_angulo = ((p2p3**2)-(p1p2**2)-(p1p3**2))/div
-#             angulo = math.acos(cos_angulo)
-#             return angulo
 
-        def calculo_angulo(p1, p2):
-            delta_x = p1[0]-p2[0]
-            delta_y = p1[1]-p2[1]
-            angulo = math.atan2(delta_x, delta_y)
-            return angulo
 
-        real_angulo = calculo_angulo(p, q)
+        def distancia (ponto1, ponto2):
+            # Distância entre os centros das circunferências:
+            h = ((ponto1[0]-ponto2[0])**2+(ponto1[1]-ponto2[1])**2)**0.5    
+            #Distância entre a folha e a camera do computador
+            h = max(h,1)
+            dist = 624*14/h
+            return dist
 
-        #print ("O ângulo entre a reta e a horizontal é de {0}".format(real_angulo))
 
-        texto = "O angulo entre a reta e a horizontal e de {0}".format(real_angulo)
+        D = distancia (p, q)
+
+        #print ("A distância entre a folha e a camera é de {0}cm".format(D))
+        texto = "A distancia entre a folha e a camera e de {0}cm".format(D)
         font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(contornos_frame,texto,(0,50), font, 0.5,(255,255,255),1,cv2.LINE_AA)
-
+        cv2.putText(contornos_frame,texto,(0,50), font, 0.5,(255,255,255),2,cv2.LINE_AA)
 
         cv2.imshow("contornos_frame", contornos_frame)
-    
     except:
         pass
     
+
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 

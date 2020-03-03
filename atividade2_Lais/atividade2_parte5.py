@@ -6,9 +6,6 @@ import imutils
 #cap = cv2.VideoCapture('hall_box_battery_1024.mp4')
 cap = cv2.VideoCapture(0)
 
-rosa="#ff004d"
-azul="#0173fe"
-
  
 
 while(True):
@@ -30,11 +27,15 @@ while(True):
    
     #Tentando detctar as cores - Lais
     #rosa
-    cap1r, cap2r = aux.ranges(rosa)
+    #cap1r, cap2r = aux.ranges(rosa)
+    cap1r = np.array([161,  50,  50])
+    cap2r = np.array([171, 255, 255])
     maskrosa = cv2.inRange(cap_hsv, cap1r, cap2r)
     
     #azul
-    cap1a, cap2a = aux.ranges(azul)
+    #cap1a, cap2a = aux.ranges(azul)
+    cap1a = np.array([97, 50, 50])
+    cap2a = np.array([107, 255, 255])
     maskazul = cv2.inRange(cap_hsv, cap1a, cap2a)
     
 
