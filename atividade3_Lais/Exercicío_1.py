@@ -6,6 +6,9 @@ import math
 import numpy as np
 
 
+ 
+
+
 def ponto_de_fuga(ang1, ang2, linear1, linear2):
     if ang2 == ang1:
         ang2 = ang1 + 1 # para nao dar div por zero
@@ -78,10 +81,13 @@ while(True):
         coef_linear = calcula_coef_linear((lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]))
         coeficientes_linear.append(coef_linear)
                       
-        
-    menor = min(coeficientes_angular) 
+       
+    for c in range(len(coeficientes_angular)):
+        if coeficientes_angular[c] == min(coeficientes_angular) and coeficientes_angular[c]!=0:
+            menor = coeficientes_angular[c]
+            i_menor = c
     maior = max(coeficientes_angular) 
-    i_menor = coeficientes_angular.index(menor)
+    #i_menor = coeficientes_angular.index(c)
     i_maior = coeficientes_angular.index(maior)
                       
     linear_menor = coeficientes_linear[i_menor]                  
@@ -92,13 +98,13 @@ while(True):
     
     # DESENHANDO PONTO DE FUGA
     cor=(255, 255, 0)
-    cv2.circle(hough_img_rgb, (int(PG[0]), int(PG[1])), 20, cor)
-    cv2.circle(hough_img_rgb, (int(PG[0]),int(PG[1])), 4, cor, 1)
+    cv2.circle(frame, (int(PG[0]), int(PG[1])), 20, cor)
+    cv2.circle(frame, (int(PG[0]),int(PG[1])), 4, cor, 1)
     
-
+    cv2.line(frame, (lines[i][0][0], lines[i][0][1]), (int(PG[0]),int(PG[1])), cor,3)
 
         
-    cv2.imshow('hough_img_rgb', hough_img_rgb)
+    cv2.imshow('frame', frame)
     
 
         
